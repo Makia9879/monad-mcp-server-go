@@ -2,11 +2,13 @@ package start_meme
 
 import (
 	"context"
-	"github.com/Makia9879/monad-mcp-server-go/internal/helper"
-	types "github.com/Makia9879/monad-mcp-server-go/internal/types/tools/start_meme"
+
 	"github.com/ThinkInAIXYZ/go-mcp/protocol"
 	"github.com/ThinkInAIXYZ/go-mcp/server"
 	"github.com/zeromicro/go-zero/core/logx"
+
+	"github.com/Makia9879/monad-mcp-server-go/internal/helper"
+	types "github.com/Makia9879/monad-mcp-server-go/internal/types/tools/start_meme"
 )
 
 const DefaultMemeURL = "https://testnet.nad.fun/"
@@ -25,11 +27,7 @@ func handleStartMeme(ctx context.Context, req *protocol.CallToolRequest) (*proto
 
 	// 启动浏览器，访问 startMemeRequest.MemePumpURL
 	var pumpURL string
-	if startMemeRequest.MemePumpURL == "" {
-		pumpURL = DefaultMemeURL
-	} else {
-		pumpURL = startMemeRequest.MemePumpURL
-	}
+	pumpURL = DefaultMemeURL
 	helper.RunChromeDaemon(ctx, pumpURL)
 
 	return &protocol.CallToolResult{

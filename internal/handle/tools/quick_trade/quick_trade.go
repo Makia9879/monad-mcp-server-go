@@ -2,12 +2,10 @@ package quick_trade
 
 import (
 	"context"
-	"time"
 
-	"github.com/ThinkInAIXYZ/go-mcp/client"
 	"github.com/ThinkInAIXYZ/go-mcp/protocol"
 	"github.com/ThinkInAIXYZ/go-mcp/server"
-	"github.com/ThinkInAIXYZ/go-mcp/transport"
+	"github.com/chromedp/chromedp"
 	"github.com/zeromicro/go-zero/core/logx"
 
 	"github.com/Makia9879/monad-mcp-server-go/internal/global"
@@ -27,41 +25,24 @@ func handleQuickTrade(ctx context.Context, req *protocol.CallToolRequest) (*prot
 		return nil, err
 	}
 
-	// 先浏览器访问 https://testnet.nad.fun/
-	t, err := transport.NewStdioClientTransport("/usr/local/bin/node", []string{global.SvcCtx.RunningPathCtx + "/scripts/puppeteer/index.js"})
+	// 执行浏览器操作
+	err := chromedp.Run(global.SvcCtx.ChromeCtx,
+		chromedp.Navigate("https://testnet.nad.fun/tokens/"+quickTradeRequest.TargetAbstract),
+		chromedp.WaitEnabled("body > div.flex.min-h-dvh.w-full.flex-col > main > div > div > div.relative.mx-auto.w-full.px-0.lg\\:px-8.pb-\\[60px\\].lg\\:pb-\\[80px\\].max-w-\\[1800px\\] > div > main > div.w-full.px-0.sm\\:px-4.py-2.pb-20.lg\\:pb-2 > div > div.hidden.w-full.space-y-6.lg\\:block.lg\\:w-96 > div.my-0.mt-4.max-h-\\[440px\\].rounded-lg.bg-gray-800.p-4.sm\\:mt-0 > div.space-y-1 > div.flex.gap-2 > button:nth-child(2)", chromedp.ByQueryAll),
+		chromedp.Click("body > div.flex.min-h-dvh.w-full.flex-col > main > div > div > div.relative.mx-auto.w-full.px-0.lg\\:px-8.pb-\\[60px\\].lg\\:pb-\\[80px\\].max-w-\\[1800px\\] > div > main > div.w-full.px-0.sm\\:px-4.py-2.pb-20.lg\\:pb-2 > div > div.hidden.w-full.space-y-6.lg\\:block.lg\\:w-96 > div.my-0.mt-4.max-h-\\[440px\\].rounded-lg.bg-gray-800.p-4.sm\\:mt-0 > div.space-y-1 > div.flex.gap-2 > button:nth-child(2)", chromedp.ByQueryAll),
+		chromedp.Click("body > div.flex.min-h-dvh.w-full.flex-col > main > div > div > div.relative.mx-auto.w-full.px-0.lg\\:px-8.pb-\\[60px\\].lg\\:pb-\\[80px\\].max-w-\\[1800px\\] > div > main > div.w-full.px-0.sm\\:px-4.py-2.pb-20.lg\\:pb-2 > div > div.hidden.w-full.space-y-6.lg\\:block.lg\\:w-96 > div.my-0.mt-4.max-h-\\[440px\\].rounded-lg.bg-gray-800.p-4.sm\\:mt-0 > button", chromedp.ByQueryAll),
+	)
 	if err != nil {
-		logx.Errorf("transport.NewStdioClientTransport err: %v", err)
+		logx.Errorf("浏览器操作失败: %v", err)
 		return nil, err
 	}
 
-	cli, err := client.NewClient(t)
-	if err != nil {
-		logx.Errorf("client.NewClient: %+v", err)
-		return nil, err
-	}
-	defer func() {
-		_ = cli.Close()
-	}()
-
-	// Create context with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	// List Tools
-	tools, err := cli.ListTools(ctx)
-	if err != nil {
-		logx.Errorf("Failed to list tools: %v", err)
-		return nil, err
-	}
-	for _, tool := range tools.Tools {
-		logx.Infof("- %s: %s", tool.Name, tool.Description)
-	}
-
+	// 完成
 	return &protocol.CallToolResult{
 		Content: []protocol.Content{
 			protocol.TextContent{
 				Type: "text",
-				Text: "完成",
+				Text: "请点击钱包插件确认交易",
 			},
 		},
 	}, nil
